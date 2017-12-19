@@ -8,15 +8,20 @@ import "./ConvertLib.sol";
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
 contract MetaCoin {
+
 	mapping (address => uint) balances;
+	mapping (address => bool) allowed;
+	address creator;
 
-	event Transfer(address indexed _from, address indexed _to, uint256 _value);
+	event Transfer (address indexed _from, address indexed _to, uint256 _value);
 
-	function MetaCoin() public {
+	function MetaCoin () public {
 		balances[tx.origin] = 10000;
+		creator = tx.origin;
 	}
 
-	function sendCoin(address receiver, uint amount) public returns(bool sufficient) {
+	function sendCoin (address receiver, uint amount) public returns(bool sufficient) {
+		require(allowed[msg.sender] == true);
 		if (balances[msg.sender] < amount) return false;
 		balances[msg.sender] -= amount;
 		balances[receiver] += amount;
@@ -24,11 +29,22 @@ contract MetaCoin {
 		return true;
 	}
 
-	function getBalanceInEth(address addr) public view returns(uint){
+	function allowAddressToSendMoney (address receiver) public {
+		require(msg.sender == creator);
+		allowed[receiver] = true;
+	}
+
+	function disallowAddressToSendMoney (address receiver) public {
+		require(msg.sender == creator);
+		allowed[receiver] = false;
+	}
+
+	function getBalanceInEth (address addr) public view returns(uint) {
 		return ConvertLib.convert(getBalance(addr),2);
 	}
 
-	function getBalance(address addr) public view returns(uint) {
+	function getBalance (address addr) public view returns(uint) {
 		return balances[addr];
 	}
+
 }

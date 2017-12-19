@@ -1,63 +1,91 @@
 let MetaCoin = artifacts.require("./MetaCoin.sol");
 
-contract('MetaCoin', function(accounts) {
-  it("should put 10000 MetaCoin in the first account", function() {
-    return MetaCoin.deployed().then(function(instance) {
-      return instance.getBalance.call(accounts[0]);
-    }).then(function(balance) {
-      assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
+contract('MetaCoin', function (accounts) {
+    
+    it("should put 10000 MetaCoin in the first account", function () {
+      
+        return MetaCoin.deployed().then(function (instance) {
+            return instance.getBalance.call(accounts[0]);
+        }).then(function (balance) {
+            assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
+        });
+        
     });
-  });
-  it("should call a function that depends on a linked library", function() {
-    let meta;
-    let metaCoinBalance;
-    let metaCoinEthBalance;
+    
+    it("should call a function that depends on a linked library", function () {
+        
+        let meta;
+        let metaCoinBalance;
+        let metaCoinEthBalance;
 
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(accounts[0]);
-    }).then(function(outCoinBalance) {
-      metaCoinBalance = outCoinBalance.toNumber();
-      return meta.getBalanceInEth.call(accounts[0]);
-    }).then(function(outCoinBalanceEth) {
-      metaCoinEthBalance = outCoinBalanceEth.toNumber();
-    }).then(function() {
-      assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpected function, linkage may be broken");
+        return MetaCoin.deployed().then(function (instance) {
+            meta = instance;
+            return meta.getBalance.call(accounts[0]);
+        }).then(function (outCoinBalance) {
+            metaCoinBalance = outCoinBalance.toNumber();
+            return meta.getBalanceInEth.call(accounts[0]);
+        }).then(function (outCoinBalanceEth) {
+            metaCoinEthBalance = outCoinBalanceEth.toNumber();
+        }).then(function () {
+            assert.equal(
+                metaCoinEthBalance,
+                2 * metaCoinBalance,
+                "Library function returned unexpected function, linkage may be broken"
+            );
+        });
+        
     });
-  });
-  it("should send coin correctly", function() {
-    let meta;
+    
+    it("should send coin correctly", function () {
 
-    // Get initial balances of first and second account.
-    let account_one = accounts[0];
-    let account_two = accounts[1];
+        let meta;
 
-    let account_one_starting_balance;
-    let account_two_starting_balance;
-    let account_one_ending_balance;
-    let account_two_ending_balance;
+        // Get initial balances of first and second account.
+        let account_one = accounts[0];
+        let account_two = accounts[1];
 
-    let amount = 10;
+        let account_one_starting_balance;
+        let account_two_starting_balance;
+        let account_one_ending_balance;
+        let account_two_ending_balance;
 
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_starting_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_starting_balance = balance.toNumber();
-      return meta.sendCoin(account_two, amount, {from: account_one});
-    }).then(function() {
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_ending_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_ending_balance = balance.toNumber();
+        let amount = 10;
 
-      assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-      assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
+        return MetaCoin.deployed().then(function (instance) {
+            meta = instance;
+            return meta.getBalance.call(account_one);
+        }).then(function (balance) {
+            account_one_starting_balance = balance.toNumber();
+            return meta.getBalance.call(account_two);
+        }).then(function (balance) {
+            account_two_starting_balance = balance.toNumber();
+            return meta.sendCoin(account_two, amount, { from: account_one });
+        }).catch(function (err) {
+	        assert.notEqual(err, null, "Should produce error as account is not allowed to send");
+        }).then(function () {
+	        return meta.allowAddressToSendMoney(account_one, { from: accounts[0] });
+        }).then(function () {
+	        return meta.sendCoin(account_two, amount, { from: account_one });
+        }).then(function () {
+            return meta.getBalance.call(account_one);
+        }).then(function (balance) {
+            account_one_ending_balance = balance.toNumber();
+            return meta.getBalance.call(account_two);
+        }).then(function (balance) {
+            account_two_ending_balance = balance.toNumber();
+            assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
+            assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
+        }).then(function () {
+	        return meta.disallowAddressToSendMoney(account_one, { from: accounts[0] });
+        }).then(function () {
+	        return meta.sendCoin(account_two, amount, { from: account_one });
+        }).catch(function (err) {
+	        assert.notEqual(err, null, "Should produce error as account is not allowed to send");
+	        return err || null;
+        }).then(function (err) {
+	        assert.notEqual(err, null, "Should produce error as account is not allowed to send");
+        });
+
     });
-  });
+    
 });
