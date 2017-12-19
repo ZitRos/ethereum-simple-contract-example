@@ -1,0 +1,36 @@
+{
+  "name": "ethereum-simple-contract-example",
+  "version": "1.0.0",
+  "description": "A simple example of contract",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle -- test",
+    "win-test": "truffle.cmd -- test",
+    "win-dev-node": "truffle.cmd -- develop",
+    "dev-node": "truffle -- develop"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZitRos/ethereum-simple-contract-example.git"
+  },
+  "keywords": [
+    "truffle",
+    "ethereum",
+    "blockchain",
+    "contract",
+    "simple",
+    "metacoin"
+  ],
+  "author": "ZitRo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ZitRos/ethereum-simple-contract-example/issues"
+  },
+  "homepage": "https://github.com/ZitRos/ethereum-simple-contract-example#readme",
+  "dependencies": {
+    "truffle": "^4.0.3"
+  }
+}
